@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Virtual env
+.venv/
+env/
+
+# Docker
+*.log
+/.docker/
+
+# Editor
+.vscode/
+
+# VS Code workspace storage
+workspaceStorage/
+
+# MacOS
+.DS_Store

@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: etl_db
+      POSTGRES_USER: etl_user
+      POSTGRES_PASSWORD: etl_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  etl:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://etl_user:etl_pass@postgres:5432/etl_db
+    volumes:
+      - ./data:/data:ro
+    entrypoint: ["python", "-m", "etl"]
+
+volumes:
+  pgdata:

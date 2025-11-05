@@ -1,0 +1,2 @@
+database:
+  url: ${DATABASE_URL:-postgres://etl_user:etl_pass@localhost:5432/etl_db}

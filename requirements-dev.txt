@@ -1,0 +1,3 @@
+pytest>=7.0
+pytest-cov
+pre-commit>=3.3.0
