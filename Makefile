@@ -6,7 +6,7 @@ build:
 	docker compose build
 
 up:
-	docker compose up --build
+	docker compose up -d
 
 run:
 	docker compose run --rm etl
@@ -25,3 +25,6 @@ verify:
 	# Run ETL (non-dry) and show results
 	docker-compose run --rm etl && \
 	psql "postgresql://etl_user:etl_pass@localhost:5432/etl_db" -c "select * from etl.results order by created_at desc limit 10;"
+
+stop:
+	docker compose down

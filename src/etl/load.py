@@ -12,13 +12,14 @@ logger = get_logger(__name__)
 
 
 TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS etl.results (
-  id SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS results (
+  id BIGSERIAL PRIMARY KEY,
   date DATE NOT NULL,
   total_amount NUMERIC,
-  created_at TIMESTAMP DEFAULT now()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 """
+
 
 
 def ensure_table(engine) -> None:
@@ -26,18 +27,33 @@ def ensure_table(engine) -> None:
         conn.execute(text(TABLE_SQL))
 
 
-def insert_aggregates(engine, rows: Iterable[Dict[str, object]]) -> int:
-    """Insert aggregated rows. Returns number of inserted rows."""
+import datetime
+from numbers import Number
+
+def insert_aggregates(engine, rows):
     inserted = 0
     with engine.begin() as conn:
         for r in rows:
+            d = r.get("date")
+            amt = r.get("total_amount")
+
+            # --- HARD SANITY CHECK ---
+            if not isinstance(d, (datetime.date, datetime.datetime)):
+                logger.warning("Skipping row - invalid date: %r", d)
+                continue
+            if not isinstance(amt, Number):
+                logger.warning("Skipping row - invalid amount: %r", amt)
+                continue
+            # -------------------------
+
             conn.execute(
-                text("INSERT INTO etl.results (date, total_amount) VALUES (:date, :total_amount)"),
-                {"date": r.get("date"), "total_amount": r.get("total_amount")},
+                text("INSERT INTO results (date, total_amount) VALUES (:date, :total_amount)"),
+                {"date": d, "total_amount": amt},
             )
             inserted += 1
     logger.info("Inserted %d aggregated rows", inserted)
     return inserted
+
 
 
 def load_from_aggregates(database_url: str | None, aggregates) -> int:

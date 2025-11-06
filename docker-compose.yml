@@ -1,7 +1,6 @@
-version: '3.8'
 services:
   postgres:
-    image: postgres:15
+    image: postgres:18
     restart: unless-stopped
     environment:
       POSTGRES_DB: etl_db
@@ -9,18 +8,25 @@ services:
       POSTGRES_PASSWORD: etl_pass
     ports:
       - "5432:5432"
+    # ✅ mount the parent dir for 18+
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata18:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   etl:
     build: .
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgres://etl_user:etl_pass@postgres:5432/etl_db
+      DATABASE_URL: postgresql://etl_user:etl_pass@postgres:5432/etl_db
     volumes:
       - ./data:/data:ro
     entrypoint: ["python", "-m", "etl"]
 
 volumes:
-  pgdata:
+  pgdata18:

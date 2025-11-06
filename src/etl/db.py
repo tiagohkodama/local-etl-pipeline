@@ -10,14 +10,15 @@ from sqlalchemy.engine import Engine
 
 
 def get_engine(database_url: Optional[str] = None, retries: int = 5, backoff: float = 1.0) -> Engine:
-    database_url = database_url or os.getenv("DATABASE_URL") or "postgres://etl_user:etl_pass@localhost:5432/etl_db"
+    database_url = database_url or os.getenv("DATABASE_URL") or "postgresql://etl_user:etl_pass@localhost:5432/etl_db"
     last_exc = None
     for attempt in range(1, retries + 1):
         try:
             engine = create_engine(database_url, future=True)
             # try connect
+            from sqlalchemy import text
             with engine.connect() as conn:
-                conn.execute("SELECT 1")
+                conn.execute(text("SELECT 1"))
             return engine
         except Exception as exc:
             last_exc = exc
